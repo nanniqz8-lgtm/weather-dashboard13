@@ -41,7 +41,8 @@
             
             <!-- Блок з даними (схований під час завантаження/помилки) -->
             <div id="current-weather-data">
-                <span id="current-icon" style="font-size: 3rem;">☀️</span>
+                <!-- Додаємо Canvas розміром 100x100 пікселів -->
+                <canvas id="weather-canvas" width="100" height="100"></canvas>
                 <p class="temp-large"><span id="live-temp">--</span>&deg;C</p>
                 <p>Київ, <span id="live-desc">завантаження...</span></p>
                 <p style="font-size: 0.8rem; opacity: 0.8;">Оновлено: <span id="live-time">--:--</span></p>
