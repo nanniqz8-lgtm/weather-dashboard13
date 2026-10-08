@@ -15,113 +15,111 @@
     <header class="site-header">
         <h1>Погодний дашборд</h1>
         <nav class="main-nav">
-            <a href="#current">Поточна погода</a>
-            <a href="#forecast">Прогноз</a>
+            <a href="#/" data-link>Головна (Live)</a>
+            <a href="#/cities" data-link>Збережені міста</a>
         </nav>
+
     </header>
 
     <hr>
 
     <!-- Основний вміст сторінки -->
-    <main>
+    <main id="app-router">
         
-        <!-- Обгортка для Flexbox (щоб поставити їх поруч на десктопі) -->
-        <div class="top-row">
-            
-        <!-- Секція 1: Поточна погода (Оновлено для ПР9: Fetch API) -->
-        <section id="current">
-            <h2>Поточна погода (Live)
-                <button id="btn-refresh" class="btn-small" aria-label="Оновити дані">🔄</button>
-            </h2>
-            <button id="btn-save-city" class="btn-small" style="margin-left: 10px; background: #FFF3E0; color: #E65100; border-radius: 4px;">⭐ Зберегти місто</button>
-
-            <button id="btn-save-ls" class="btn-small" style="margin-left: 10px; background: #E3F2FD; color: #1565C0; border-radius: 4px;">💾 Зберегти в LS (Тест)</button>
-            
-            <!-- Блок для повідомлень (завантаження, помилки) -->
-            <div id="api-status-message" class="status-msg hidden"></div>
-            
-            <!-- Блок з даними (схований під час завантаження/помилки) -->
-            <div id="current-weather-data">
-                <!-- Додаємо Canvas розміром 100x100 пікселів -->
-                <canvas id="weather-canvas" width="100" height="100"></canvas>
-                <p class="temp-large"><span id="live-temp">--</span>&deg;C</p>
-                <p>Київ, <span id="live-desc">завантаження...</span></p>
-                <p style="font-size: 0.8rem; opacity: 0.8;">Оновлено: <span id="live-time">--:--</span></p>
+        <!-- СТОРІНКА 1: Головна (Поточна погода + Форма + Тижневий прогноз) -->
+        <div id="view-home" class="spa-view">
+            <div class="top-row">
+                <section id="current">
+                    <!-- ... тут твій код поточної погоди з ПР9 ... -->
+                    <h2>Поточна погода (Live)
+                        <button id="btn-refresh" class="btn-small" aria-label="Оновити дані">🔄</button>
+                    </h2>
+                    <button id="btn-save-city" class="btn-small" style="margin-left: 10px; background: #FFF3E0; color: #E65100; border-radius: 4px;">⭐ Зберегти місто (IDB)</button>
+                    <button id="btn-save-ls" class="btn-small" style="margin-left: 10px; background: #E3F2FD; color: #1565C0; border-radius: 4px;">💾 Зберегти в LS (Тест)</button>
+                    
+                    <div id="api-status-message" class="status-msg hidden"></div>
+                    
+                    <div id="current-weather-data">
+                        <canvas id="weather-canvas" width="100" height="100" style="display: block; margin: 0 auto;"></canvas>
+                        <p class="temp-large"><span id="live-temp">--</span>&deg;C</p>
+                        <p>Київ, <span id="live-desc">завантаження...</span></p>
+                        <p style="font-size: 0.8rem; opacity: 0.8;">Оновлено: <span id="live-time">--:--</span></p>
+                    </div>
+                </section>
+                
+                <aside class="sidebar"> 
+                    <!-- ... аналітика з ПР8 ... -->
+                    <h2>Аналітика</h2>
+                    <button id="btn-warmest-day">Знайти найтепліший день</button>
+                    <p id="warmest-day-result" style="margin-top: 10px; font-weight: bold;"></p>
+                    <hr style="margin: 15px 0;">
+                    <h2>Порада: Що вдягнути</h2>
+                    <p>На вулиці сонячно, але вітряно. Рекомендуємо взяти легку куртку!</p>
+                </aside>
             </div>
-        </section>
-
-
-            <aside class="sidebar"> 
-                <h2>Аналітика</h2>
-                <button id="btn-warmest-day">Знайти найтепліший день</button>
-                <p id="warmest-day-result" style="margin-top: 10px; font-weight: bold;"></p>
-                
-                <hr style="margin: 15px 0;">
-                
-                <h2>Порада: Що вдягнути</h2>
-                <p>На вулиці сонячно, але вітряно. Рекомендуємо взяти легку куртку!</p>
-            </aside>
-
+            
+            <hr>
+            
+            <section id="add-forecast">
+                <!-- ... форма з ПР8 ... -->
+                <h2>Додати новий прогноз</h2>
+                <form id="add-forecast-form">
+                    <!-- поля форми залишаються без змін -->
+                    <div class="form-group"><label for="input-day">День:</label><input type="text" id="input-day" required></div>
+                    <div class="form-group"><label for="input-temp">Температура:</label><input type="number" id="input-temp" required></div>
+                    <div class="form-group"><label for="input-desc">Опис:</label><input type="text" id="input-desc"></div>
+                    <button type="submit">Додати прогноз</button>
+                </form>
+            </section>
+            
+            <hr>
+            
+            <section id="forecast">
+                <!-- ... Vue прогноз з ПР10 ... -->
+                <h2>Прогноз на тиждень</h2>
+                <div id="app" class="cards">
+                    <weather-card 
+                        v-for="dayItem in forecastList" 
+                        :key="dayItem.id"
+                        :day="dayItem.day"
+                        :temp-c="dayItem.tempC"
+                        :description="dayItem.description"
+                    ></weather-card>
+                </div>
+            </section>
         </div>
 
-        <hr>
-
-        <!-- Нова секція: Додавання прогнозу (ПР8) -->
-        <section id="add-forecast">
-            <h2>Додати новий прогноз</h2>
-            
-            <form id="add-forecast-form">
-                <div class="form-group">
-                    <label for="input-day">День (напр., Пн):</label>
-                    <input type="text" id="input-day" name="day" required>
+        <!-- СТОРІНКА 2: Збережені міста -->
+        <div id="view-cities" class="spa-view hidden">
+            <section id="saved">
+                <h2>Збережені міста (IndexedDB)</h2>
+                <!-- Кнопка повернення -->
+                <a href="#/" data-link style="display: inline-block; margin-bottom: 15px; color: #1D4A7A;">&larr; Назад на головну</a>
+                <div id="saved-cities-list" style="display: flex; flex-direction: column; gap: 10px;">
+                    <!-- Тут будуть з'являтися картки міст -->
                 </div>
-                
-                <div class="form-group">
-                    <label for="input-temp">Температура (°C):</label>
-                    <!-- Вбудована валідація: type="number" та required -->
-                    <input type="number" id="input-temp" name="tempC" required>
+            </section>
+        </div>
+
+        <!-- СТОРІНКА 3: Деталі одного міста (Маршрут з параметром) -->
+        <div id="view-detail" class="spa-view hidden">
+            <section>
+                <h2>Деталі збереженого прогнозу</h2>
+                <a href="#/cities" data-link style="display: inline-block; margin-bottom: 15px; color: #1D4A7A;">&larr; Назад до списку міст</a>
+                <div id="city-detail-content" style="background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                    <!-- Сюди JS підставить деталі міста -->
                 </div>
-                
-                <div class="form-group">
-                    <label for="input-desc">Опис (напр., Ясно ☀️):</label>
-                    <input type="text" id="input-desc" name="description">
-                </div>
-                
-                <button type="submit">Додати прогноз</button>
-            </form>
-        </section>
+            </section>
+        </div>
 
-        <hr>
-
-        <hr>
-        <section id="saved">
-            <h2>Збережені міста (IndexedDB)</h2>
-            <div id="saved-cities-list" style="display: flex; flex-direction: column; gap: 10px;">
-                <!-- Тут будуть з'являтися картки міст -->
-            </div>
-        </section>
-        <hr>
-
-
-        <section id="forecast">
-            <h2>Прогноз на тиждень</h2>
-
-            <p class="summary-text">Середня температура за період: <strong id="avg-temp">--</strong>&deg;C</p>
-            
-            <!-- Контейнер для Vue застосунку -->
-            <div id="app" class="cards">
-                <!-- Тут ми використовуємо наш власний компонент weather-card.
-                     v-for перебирає масив forecastList.
-                     :day, :temp-c, :description передають дані в компонент (props). -->
-                <weather-card 
-                    v-for="dayItem in forecastList" 
-                    :key="dayItem.id"
-                    :day="dayItem.day"
-                    :temp-c="dayItem.tempC"
-                    :description="dayItem.description"
-                ></weather-card>
-            </div>
-        </section>
+        <!-- СТОРІНКА 404: Не знайдено -->
+        <div id="view-404" class="spa-view hidden">
+            <section style="text-align: center; padding: 50px;">
+                <h2 style="font-size: 3rem; color: #C62828;">404</h2>
+                <p>Ой! Такої сторінки не існує.</p>
+                <a href="#/" data-link style="font-weight: bold; color: #1D4A7A;">Повернутися на головну</a>
+            </section>
+        </div>
 
     </main>
 

@@ -332,10 +332,10 @@ function loadFromLocalStorage() {
 
 //  Реальне збереження в LocalStorage (виправлення зауваження)
 function saveToLocalStorage(city) {
-    const lsCities = loadFromLocalStorage();
-    lsCities.push(city);
-    localStorage.setItem('savedCities', JSON.stringify(lsCities));
-    console.log('Дані реально записано в localStorage користувачем:', city.name);
+  const lsCities = loadFromLocalStorage();
+  lsCities.push(city);
+  localStorage.setItem("savedCities", JSON.stringify(lsCities));
+  console.log("Дані реально записано в localStorage користувачем:", city.name);
 }
 
 // 2. Ініціалізація IndexedDB (Створення бази та Object Store)
@@ -418,7 +418,8 @@ function renderSavedCities(cities) {
     div.className = "saved-city-card";
     div.innerHTML = `
             <div>
-                <strong>${city.name}</strong> 
+                <!-- РОУТИНГ ПР13: Посилання на деталі міста з параметром id -->
+                <a href="#/cities/${city.id}" class="city-link" data-link><strong>${city.name}</strong></a> 
                 <span style="color:#777; font-size: 0.85em;">(lat: ${city.lat}, lon: ${city.lon})</span><br>
                 Останній прогноз: <b>${city.temperature}°C</b>, ${city.weatherCode} <br>
                 <small style="color:#999;">Час запису: ${city.time}</small>
@@ -430,33 +431,36 @@ function renderSavedCities(cities) {
 }
 
 // Обробник для нової кнопки збереження в LocalStorage (Синя кнопка)
-const btnSaveLS = document.querySelector('#btn-save-ls');
+const btnSaveLS = document.querySelector("#btn-save-ls");
 if (btnSaveLS) {
-    btnSaveLS.addEventListener('click', () => {
-        const liveTempText = document.querySelector('#live-temp').textContent;
-        const liveDescText = document.querySelector('#live-desc').textContent;
-        
-        if (liveTempText === '--' || liveTempText === '') {
-            return alert('Дочекайтесь завантаження погоди!');
-        }
-        
-        const newCity = {
-            id: "ls-" + Date.now().toString(),
-            name: "Львів (через LS)", // Зберігаємо як Львів, щоб відрізняти
-            lat: 49.83, lon: 24.02,
-            temperature: parseFloat(liveTempText),
-            weatherCode: liveDescText,
-            time: new Date().toLocaleTimeString('uk-UA')
-        };
+  btnSaveLS.addEventListener("click", () => {
+    const liveTempText = document.querySelector("#live-temp").textContent;
+    const liveDescText = document.querySelector("#live-desc").textContent;
 
-        // Викликаємо РЕАЛЬНУ функцію збереження!
-        saveToLocalStorage(newCity);
-        
-        // Скидаємо прапорець міграції, щоб при оновленні сторінки вона 100% спрацювала
-        localStorage.removeItem('migratedToIDB');
-        
-        alert('✅ Місто успішно збережено в LocalStorage!\n\nТепер натисніть ОК і оновіть сторінку (F5). Скрипт знайде ці дані і перенесе їх в IndexedDB.');
-    });
+    if (liveTempText === "--" || liveTempText === "") {
+      return alert("Дочекайтесь завантаження погоди!");
+    }
+
+    const newCity = {
+      id: "ls-" + Date.now().toString(),
+      name: "Львів (через LS)", // Зберігаємо як Львів, щоб відрізняти
+      lat: 49.83,
+      lon: 24.02,
+      temperature: parseFloat(liveTempText),
+      weatherCode: liveDescText,
+      time: new Date().toLocaleTimeString("uk-UA"),
+    };
+
+    // Викликаємо РЕАЛЬНУ функцію збереження!
+    saveToLocalStorage(newCity);
+
+    // Скидаємо прапорець міграції, щоб при оновленні сторінки вона 100% спрацювала
+    localStorage.removeItem("migratedToIDB");
+
+    alert(
+      "✅ Місто успішно збережено в LocalStorage!\n\nТепер натисніть ОК і оновіть сторінку (F5). Скрипт знайде ці дані і перенесе їх в IndexedDB.",
+    );
+  });
 }
 
 // 7. Головна функція запуску (з логікою МІГРАЦІЇ та ОБРОБКОЮ ПОМИЛОК)
@@ -465,7 +469,7 @@ async function initSavedCities() {
     const dbCities = await getAllCitiesDB();
 
     // Якщо IndexedDB порожня, і ми ще не робили міграцію
-    if (!localStorage.getItem('migratedToIDB')) {
+    if (!localStorage.getItem("migratedToIDB")) {
       console.log("Пошук старих даних у localStorage для міграції...");
       const lsCities = loadFromLocalStorage();
 
@@ -684,3 +688,113 @@ function animateSnow() {
 
   animationId = requestAnimationFrame(animateSnow);
 }
+
+// ПРАКТИЧНА РОБОТА 13: SPA МАРШРУТИЗАЦІЯ
+
+// 1. Таблиця маршрутів (path - патерн URL, viewId - ID контейнера, init - функція, що спрацьовує при відкритті)
+const routes = [
+  {
+    path: "/",
+    viewId: "view-home",
+    init: () => {
+      /* Дані завантажуються самі при старті */
+    },
+  },
+  { path: "/cities", viewId: "view-cities", init: initSavedCities },
+  { path: "/cities/:id", viewId: "view-detail", init: loadCityDetail },
+];
+
+// 2. Функція зіставлення поточного шляху з патернами
+function matchRoute(path) {
+  const pathParts = path.split("/").filter(Boolean); // Розбиваємо шлях (напр. ['cities', '123'])
+
+  for (const route of routes) {
+    const routeParts = route.path.split("/").filter(Boolean); // Розбиваємо патерн (напр. ['cities', ':id'])
+
+    if (routeParts.length !== pathParts.length) continue; // Різна кількість частин - не підходить
+
+    const params = {};
+    const isMatch = routeParts.every((part, i) => {
+      if (part.startsWith(":")) {
+        // Якщо частина починається з ":", це параметр. Зберігаємо його.
+        params[part.slice(1)] = pathParts[i];
+        return true;
+      }
+      return part === pathParts[i]; // Інакше - точний збіг тексту
+    });
+
+    if (isMatch) return { view: route, params };
+  }
+  return null; // Маршрут не знайдено (404)
+}
+
+// 3. Головна функція роутера
+function router() {
+  // Отримуємо хеш без символу # (якщо порожній - ставимо '/')
+  const path = location.hash.slice(1) || "/";
+
+  // Ховаємо всі сторінки (додаємо клас hidden)
+  document
+    .querySelectorAll(".spa-view")
+    .forEach((view) => view.classList.add("hidden"));
+
+  // Шукаємо відповідний маршрут
+  const match = matchRoute(path);
+
+  if (match) {
+    // Показуємо потрібну сторінку
+    document.getElementById(match.view.viewId).classList.remove("hidden");
+    // Якщо для сторінки є функція ініціалізації - викликаємо її (передаючи параметри)
+    if (match.view.init) match.view.init(match.params);
+  } else {
+    // Сторінка 404
+    document.getElementById("view-404").classList.remove("hidden");
+  }
+}
+
+// 4. View-функція для відображення деталей конкретного міста (Використовує IndexedDB з ПР11)
+async function loadCityDetail(params) {
+  const container = document.getElementById("city-detail-content");
+  container.innerHTML = "<p>Завантаження даних...</p>"; // Очищуємо та показуємо статус
+
+  try {
+    const cities = await getAllCitiesDB(); // Беремо всі міста з IndexedDB
+    // Шукаємо місто, id якого збігається з параметром з URL
+    const city = cities.find((c) => c.id === params.id);
+
+    if (city) {
+      // Рендеримо деталі (перевикористовуємо дані з ПР11)
+      container.innerHTML = `
+                <h3 style="color: #1D4A7A; margin-top: 0;">${city.name}</h3>
+                <p><strong>Координати:</strong> Широта ${city.lat}, Довгота ${city.lon}</p>
+                <p><strong>Збережена температура:</strong> <span style="font-size: 1.5em; color: #E65100;">${city.temperature}°C</span></p>
+                <p><strong>Опис погоди:</strong> ${city.weatherCode}</p>
+                <hr>
+                <p style="color: #666; font-size: 0.9em;">Точний час запису у базу даних: ${city.time}</p>
+                <p style="color: #666; font-size: 0.9em;">Унікальний ідентифікатор запису: ${city.id}</p>
+            `;
+    } else {
+      container.innerHTML =
+        '<p style="color: red;">Помилка: Запис про це місто не знайдено в базі даних.</p>';
+    }
+  } catch (error) {
+    container.innerHTML =
+      '<p style="color: red;">Помилка доступу до бази даних.</p>';
+  }
+}
+
+// 5. Перехоплення кліків по посиланнях з атрибутом data-link (за вимогою завдання)
+document.body.addEventListener("click", (e) => {
+  // Шукаємо, чи клікнули ми по тегу <a> з атрибутом data-link
+  const link = e.target.closest("a[data-link]");
+  if (link) {
+    // У Hash-роутингу браузер сам змінить URL, але ми можемо використати це для кастомної логіки
+    // preventDefault() тут не обов'язковий для hash, але доданий для відповідності інструкції
+  }
+});
+
+// 6. Підписка на події зміни хеша (кнопки Назад/Вперед у браузері)
+window.addEventListener("hashchange", router);
+
+// 7. Виклик роутера при першому завантаженні сторінки
+window.addEventListener("DOMContentLoaded", router);

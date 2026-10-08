@@ -311,3 +311,26 @@ button:hover {
 .btn-delete:hover {
     background: #EF9A9A;
 }
+
+/* ПРАКТИЧНА 13: SPA Роутинг */
+.spa-view {
+    animation: fadeIn 0.3s ease-in-out;
+}
+.spa-view.hidden {
+    display: none !important;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Робимо імена міст клікабельними */
+.city-link {
+    color: #1D4A7A;
+    text-decoration: none;
+    font-size: 1.1em;
+}
+.city-link:hover {
+    text-decoration: underline;
+}
